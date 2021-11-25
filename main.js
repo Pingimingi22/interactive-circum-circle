@@ -1,5 +1,8 @@
 //import * as THREE from "/js/three.module.js"
-import { Object3D } from "./js/three";
+
+
+import { LineBasicMaterial } from "./js/three.module.js";
+import { Mesh } from "./js/three.module.js";
 import * as THREE from "/js/three.module.js"
 
 
@@ -10,38 +13,40 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight);
 document.body.appendChild( renderer.domElement );
 
+var mouse = new THREE.Vector3();
 
-var mouse = new THREE.Vector2();
 document.addEventListener('mousemove', onDocumentMouseMove, false);
 document.addEventListener("mousedown", onMouseDown, false);
 
-
-
-
-// const geometry = new THREE.BoxGeometry();
-// const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-// const cube = new THREE.Mesh( geometry, material );
-// scene.add( cube );
-
  camera.position.z = 20;
 
+ var testPos = new THREE.Vector3(0, 0, 0);
 
-
-var circleGeo = new THREE.CircleGeometry(1, 100);
-var circleMat = new THREE.LineBasicMaterial({color: 0x00FFFF});
 var nodeMat = new THREE.LineBasicMaterial({color: 0xFFFFFF});
-var circleMesh = new THREE.Mesh(circleGeo, circleMat);
+var clickedMat = new LineBasicMaterial({color: 0x00FF00});
 
-var nodeGeo = new THREE.CircleGeometry(0.5, 50);
-var nodeMesh = new THREE.Mesh(nodeGeo, nodeMat);
+var nodeGeo = new THREE.CircleGeometry(5, 50);
+var nodeMesh = new Mesh(nodeGeo, nodeMat);
 nodeMesh.position.x = 2;
+nodeMesh.position.z = 0;
+nodeMesh.updateMatrix();
 
-console.log(nodeMesh.id);
-
-//scene.add(circleMesh);
 scene.add(nodeMesh);
 
-var testObj;
+var heldObj;
+
+
+const points = [];
+ points.push(new THREE.Vector3(nodeMesh.position.x, 0, nodeMesh.position.z));
+points.push(new THREE.Vector3(testPos.x, testPos.y, mouse.z));
+
+
+const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+const line = new THREE.Line(lineGeo, clickedMat);
+
+scene.add(line);
+
+
 
 function animate() {
 	requestAnimationFrame( animate );
@@ -51,84 +56,129 @@ animate();
 
 function onDocumentMouseMove(event) {
     event.preventDefault();
-    mouse.x = event.clientX;
-    mouse.y = event.clientY;
-    mouse.z = 0;
 
+    // Getting screen space mouse coordinates in device coordinates.
+    mouse.x = (event.clientX / window.innerWidth) * 2 + 1;
+    mouse.y = (event.clientY / window.innerHeight) * 2 - 1;
     
     var vec = new THREE.Vector3(); // create once and reuse
     var pos = new THREE.Vector3(); // create once and reuse
 
+    // Getting the mouse location in input device coordinates.
     vec.set(
     ( event.clientX / window.innerWidth ) * 2 - 1,
-    - ( event.clientY / window.innerHeight ) * 2 + 1,
-    /*0.5*/0 );
+     -( event.clientY / window.innerHeight ) * 2 + 1,
+    0);
 
+    // After making them normalised device coordniates, we get them back to world space coordinates on z-level 0.
     vec.unproject( camera );
 
+    // Moving the vector to the camera's position.
     vec.sub( camera.position ).normalize();
 
+    // Unsure of what this does.
     var distance = (nodeMesh.position.z - camera.position.z) / vec.z;
-
-    pos.copy( camera.position ).add( vec.multiplyScalar( distance ) );
-
-    //mouse = pos;
-
-    //nodeMesh.position.x = pos.x;
-    //nodeMesh.position.y = pos.y;
-    //nodeMesh.position.z = pos.z;
-
-    // nodeMesh.position.x = mouse.x;
-    // nodeMesh.position.y = mouse.y;
-    // nodeMesh.position.z = mouse.z;
     
-    if(testObj)
+    pos.copy( camera.position ).add( vec.multiplyScalar( distance ) );
+    testPos = pos;
+    
+    
+    if(CheckOverlap(nodeMesh)){
+        nodeMesh.material = clickedMat;
+    }else{
+        nodeMesh.material = nodeMat;
+    }
+
+    if(heldObj)
     {
-        testObj.position.x = pos.x;
-        testObj.position.y = pos.y;
+      
+        heldObj.translateX(pos.x - heldObj.getWorldPosition(heldObj.position).x);
+        heldObj.translateY(pos.y - heldObj.getWorldPosition(heldObj.position).y);
+        //heldObj.object.position.x = pos.x;
+        //heldObj.object.position.y = pos.y;
+        nodeMesh.updateMatrix();
         //testObj.position.z = mouse.z;
         
     }
 
+    // WHY JAVASCRIPT WHYYYYYYYYYYY ========================================================================= SHOW FINN LOL
+    var circleToMouse = mouse.sub(nodeMesh.position);
+    var mag = circleToMouse.x * circleToMouse.x + circleToMouse.y * circleToMouse.y;
+    mag = Math.sqrt(mag);
+    //console.log(mag);
+
+    
+    points[1].x = testPos.x;
+    points[1].y = testPos.y;
+
+    //const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+    line.geometry = new THREE.BufferGeometry().setFromPoints(points);
+    
+
+}
+
+function CheckOverlap(hit){
+    var ray = new THREE.Raycaster();
+    ray.setFromCamera(mouse, camera);
+
+    const hits = ray.intersectObjects(scene.children);
+    if(hits.length > 0)
+    {
+        // We check if the passed in object was one of the hits.
+        if(hit.id == hits[0].object.id)
+        {
+            return true;
+        }
+        else{
+            return false;
+
+        }
+    }
+    else{
+        return false;
+    }
 }
 
 function onMouseDown(event){
-    console.log("mouse position: " + mouse.x + ", " + mouse.y);
-    if(mouse.distanceTo(nodeMesh.position) <= 100){
-        console.log(mouse.distanceTo(new THREE.Vector2(nodeMesh.position.x, nodeMesh.position.y)));
-        console.log(nodeMesh.position);
+    //console.log("mouse position: " + testPos.x + ", " + testPos.y, "," + testPos.z);
+    //console.log("object position: " + nodeMesh.position.x, ", " + nodeMesh.position.y + "," + nodeMesh.position.z);
+    //console.log(mouse.distanceTo(new THREE.Vector2(nodeMesh.position.x, nodeMesh.position.y)));
 
         var ray = new THREE.Raycaster();
+
+        //var mouseWorld = mouse.unproject(camera);
+        //mouseWorld.z = 0;
         ray.setFromCamera(mouse, camera);
+        console.log("mouse x: " + mouse.x + "mouse y: " + mouse.y);
         //const hits = nodeMesh.raycast(ray);
         const intersectedObjects = ray.intersectObjects(scene.children);
-        if(intersectedObjects.length)
-        {
-            console.log("ID of object is: " + intersectedObjects[0].object.id);
-            console.log("You clicked on the objects.");
-
-            if(testObj)
+        if(heldObj)
             {
-                testObj = null;
+                heldObj = null;
+                console.log("Dropped object.");
+
+            }
+        if(intersectedObjects.length > 0)
+        {
+            if(heldObj)
+            {
+                heldObj = null;
+                console.log("Dropped object.");
 
             }
             else
             {
-                if(intersectedObjects[0].object.id == nodeMesh.id)
+                for(var i = 0; i < intersectedObjects.length; i++)
                 {
-                    console.log("You clicked on a node!");
-                    testObj = nodeMesh;
-                    
+                    if(intersectedObjects[i].object.id == nodeMesh.id)
+                    {
+                        heldObj = nodeMesh;
+                        console.log("Picked up object.");
+                    }
                 }
+                
             }
-            
 
-
-        }
-
-
-    }
-    console.log(nodeMesh.position);
-    
-
+        } 
+        
 }

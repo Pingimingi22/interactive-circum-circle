@@ -58,9 +58,9 @@ function onDocumentMouseMove(event) {
     event.preventDefault();
 
     // Getting screen space mouse coordinates in device coordinates.
-    mouse.x = (event.clientX / window.innerWidth) * 2 + 1;
-    mouse.y = (event.clientY / window.innerHeight) * 2 - 1;
-    
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    console.log("aaa");
     var vec = new THREE.Vector3(); // create once and reuse
     var pos = new THREE.Vector3(); // create once and reuse
 
@@ -85,7 +85,9 @@ function onDocumentMouseMove(event) {
     
     if(CheckOverlap(nodeMesh)){
         nodeMesh.material = clickedMat;
-    }else{
+    }
+    else
+    {
         nodeMesh.material = nodeMat;
     }
 
@@ -101,8 +103,8 @@ function onDocumentMouseMove(event) {
         
     }
 
-    // WHY JAVASCRIPT WHYYYYYYYYYYY ========================================================================= SHOW FINN LOL
-    var circleToMouse = mouse.sub(nodeMesh.position);
+    var temp = new THREE.Vector3(mouse.x, mouse.y, mouse.z);
+    var circleToMouse = temp.sub(nodeMesh.position);
     var mag = circleToMouse.x * circleToMouse.x + circleToMouse.y * circleToMouse.y;
     mag = Math.sqrt(mag);
     //console.log(mag);
@@ -125,16 +127,17 @@ function CheckOverlap(hit){
     if(hits.length > 0)
     {
         // We check if the passed in object was one of the hits.
-        if(hit.id == hits[0].object.id)
-        {
+        //if(hit.id == hits[0].object.id)
+        //{
             return true;
-        }
-        else{
-            return false;
+        //}
+        //else{
+          //  return false;
 
-        }
+       // }
     }
-    else{
+    else
+    {
         return false;
     }
 }
@@ -158,7 +161,7 @@ function onMouseDown(event){
                 console.log("Dropped object.");
 
             }
-        if(intersectedObjects.length > 0)
+        else if(intersectedObjects.length > 0)
         {
             if(heldObj)
             {

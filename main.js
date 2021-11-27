@@ -37,8 +37,8 @@ var heldObj;
 
 
 const points = [];
- points.push(new THREE.Vector3(nodeMesh.position.x, 0, nodeMesh.position.z));
-points.push(new THREE.Vector3(testPos.x, testPos.y, mouse.z));
+ points.push(new THREE.Vector3(nodeMesh.position.x, 0, /*nodeMesh.position.z*/ 0));
+points.push(new THREE.Vector3(testPos.x, testPos.y, /*mouse.z*/ 0));
 
 
 const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
@@ -58,16 +58,16 @@ function onDocumentMouseMove(event) {
     event.preventDefault();
 
     // Getting screen space mouse coordinates in device coordinates.
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    mouse.x = (event.offsetX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.offsetY / window.innerHeight) * 2 + 1;
     console.log("aaa");
     var vec = new THREE.Vector3(); // create once and reuse
     var pos = new THREE.Vector3(); // create once and reuse
 
     // Getting the mouse location in input device coordinates.
     vec.set(
-    ( event.clientX / window.innerWidth ) * 2 - 1,
-     -( event.clientY / window.innerHeight ) * 2 + 1,
+    ( event.offsetX / window.innerWidth ) * 2 - 1,
+     -( event.offsetY / window.innerHeight ) * 2 + 1,
     0);
 
     // After making them normalised device coordniates, we get them back to world space coordinates on z-level 0.
@@ -79,16 +79,20 @@ function onDocumentMouseMove(event) {
     // Unsure of what this does.
     var distance = (nodeMesh.position.z - camera.position.z) / vec.z;
     
+    //var distance = Math.sqrt(vec.x * vec.x + vec.y * vec.y);
+    //distance = Math.sqrt(distance.x * distance.x + distance.y * distance.y);
+
     pos.copy( camera.position ).add( vec.multiplyScalar( distance ) );
     testPos = pos;
     
-    
-    if(CheckOverlap(nodeMesh)){
+    if(CheckOverlap(nodeMesh) == true){
         nodeMesh.material = clickedMat;
+
     }
     else
     {
         nodeMesh.material = nodeMat;
+
     }
 
     if(heldObj)
@@ -109,12 +113,13 @@ function onDocumentMouseMove(event) {
     mag = Math.sqrt(mag);
     //console.log(mag);
 
-    
+    //var unprojectedMouse = mouse.unproject(camera);
     points[1].x = testPos.x;
     points[1].y = testPos.y;
 
     //const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
     line.geometry = new THREE.BufferGeometry().setFromPoints(points);
+    
     
 
 }
@@ -122,19 +127,24 @@ function onDocumentMouseMove(event) {
 function CheckOverlap(hit){
     var ray = new THREE.Raycaster();
     ray.setFromCamera(mouse, camera);
+    console.log("mouse x: " + mouse.x + ", " + "mouse y: " + mouse.y );
 
     const hits = ray.intersectObjects(scene.children);
     if(hits.length > 0)
     {
         // We check if the passed in object was one of the hits.
-        //if(hit.id == hits[0].object.id)
-        //{
-            return true;
-        //}
-        //else{
-          //  return false;
+        for(var i = 0; i < hits.length; i++)
+        {
+            if(hit.id == hits[i].object.id)
+            {
+                return true;
+            }
+            
+        }
 
-       // }
+        return false;
+            
+        
     }
     else
     {

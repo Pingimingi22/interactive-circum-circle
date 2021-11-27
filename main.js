@@ -5,6 +5,8 @@ import { LineBasicMaterial } from "./js/three.module.js";
 import { Mesh } from "./js/three.module.js";
 import * as THREE from "/js/three.module.js"
 
+import {Handle} from "./handle.js";
+
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -31,7 +33,7 @@ nodeMesh.position.x = 2;
 nodeMesh.position.z = 0;
 nodeMesh.updateMatrix();
 
-scene.add(nodeMesh);
+//scene.add(nodeMesh);
 
 var heldObj;
 
@@ -46,11 +48,32 @@ const line = new THREE.Line(lineGeo, clickedMat);
 
 scene.add(line);
 
+const handleArray = [new Handle(0.5, 0, 0, scene, nodeMat, clickedMat), new Handle(0.5, 5, 0, scene, nodeMat, clickedMat), new Handle(0.5, -1, -3, scene, nodeMat, clickedMat)];
+// var handle1 = new Handle(0.5, 0, 0, scene, nodeMat, clickedMat)
+// var handle2 = new Handle(0.5, 5, 0, scene, nodeMat, clickedMat);
+// var handle3 = new Handle(0.5, -1, -3, scene, nodeMat, clickedMat);
 
+
+function update(event)
+{   
+    requestAnimationFrame( update );
+
+    for(var i = 0; i < handleArray.length; i++)
+    {
+        handleArray[i].Update(event, mouse, camera, scene);
+
+    }
+    // handle1.Update(event, mouse, camera, scene);
+    // handle2.Update(event, mouse, camera, scene);
+    // handle3.Update(event, mouse, camera, scene);
+}
+update();
 
 function animate() {
 	requestAnimationFrame( animate );
 	renderer.render( scene, camera );
+
+    
 }
 animate();
 
@@ -60,7 +83,13 @@ function onDocumentMouseMove(event) {
     // Getting screen space mouse coordinates in device coordinates.
     mouse.x = (event.offsetX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.offsetY / window.innerHeight) * 2 + 1;
-    console.log("aaa");
+    
+    // handle1.Update(event, mouse, camera, scene);
+    // handle2.Update(event, mouse, camera, scene);
+    // handle3.Update(event, mouse, camera, scene);
+
+    
+
     var vec = new THREE.Vector3(); // create once and reuse
     var pos = new THREE.Vector3(); // create once and reuse
 
@@ -127,7 +156,7 @@ function onDocumentMouseMove(event) {
 function CheckOverlap(hit){
     var ray = new THREE.Raycaster();
     ray.setFromCamera(mouse, camera);
-    console.log("mouse x: " + mouse.x + ", " + "mouse y: " + mouse.y );
+    
 
     const hits = ray.intersectObjects(scene.children);
     if(hits.length > 0)
@@ -152,46 +181,15 @@ function CheckOverlap(hit){
     }
 }
 
-function onMouseDown(event){
-    //console.log("mouse position: " + testPos.x + ", " + testPos.y, "," + testPos.z);
-    //console.log("object position: " + nodeMesh.position.x, ", " + nodeMesh.position.y + "," + nodeMesh.position.z);
-    //console.log(mouse.distanceTo(new THREE.Vector2(nodeMesh.position.x, nodeMesh.position.y)));
-
-        var ray = new THREE.Raycaster();
-
-        //var mouseWorld = mouse.unproject(camera);
-        //mouseWorld.z = 0;
-        ray.setFromCamera(mouse, camera);
-        console.log("mouse x: " + mouse.x + "mouse y: " + mouse.y);
-        //const hits = nodeMesh.raycast(ray);
-        const intersectedObjects = ray.intersectObjects(scene.children);
-        if(heldObj)
-            {
-                heldObj = null;
-                console.log("Dropped object.");
-
-            }
-        else if(intersectedObjects.length > 0)
+function onMouseDown(event)
+{
+    for(var i = 0; i < handleArray.length; i++)
+    {
+        if(handleArray[i].m_IsHovering)
         {
-            if(heldObj)
-            {
-                heldObj = null;
-                console.log("Dropped object.");
+            console.log("You clicked on a handle!");
 
-            }
-            else
-            {
-                for(var i = 0; i < intersectedObjects.length; i++)
-                {
-                    if(intersectedObjects[i].object.id == nodeMesh.id)
-                    {
-                        heldObj = nodeMesh;
-                        console.log("Picked up object.");
-                    }
-                }
-                
-            }
+        }
 
-        } 
-        
+    }
 }

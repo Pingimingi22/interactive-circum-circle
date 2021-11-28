@@ -3,18 +3,24 @@
 
 import { LineBasicMaterial } from "./js/three.module.js";
 import { Mesh } from "./js/three.module.js";
-import * as THREE from "/js/three.module.js"
+import * as THREE from "./js/three.module.js"
 
 import {Handle} from "./handle.js";
 
 // ------------ Setting up camera and scene ------------ //
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+THREE.WebGLRenderer.alpha = true;
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize( window.innerWidth, window.innerHeight);
-document.body.appendChild( renderer.domElement );
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera( 75, 500 / 400, 0.1, 1000 );
+
+var canvRef = document.getElementById("my_canvas")
+const renderer = new THREE.WebGLRenderer({canvas: canvRef});
+renderer.setSize( 500, 400);
+
+var container = document.getElementsByClassName("content");
+//container[0].appendChild( renderer.domElement );
+container[0].insertBefore(renderer.domElement, document.getElementsByClassName("content").item(0).lastElementChild);
 
 var mouse = new THREE.Vector3();
 
@@ -129,8 +135,8 @@ function update(event)
     normal2X /= normal2Mag;
     normal2Y /= normal2Mag;
 
-    //normal2Handle.mesh.position.x = testHandle2.mesh.position.x + (normal2Y);
-    //normal2Handle.mesh.position.y = testHandle2.mesh.position.y + -(normal2X);
+    normal2Handle.mesh.position.x = testHandle2.mesh.position.x + (normal2Y);
+    normal2Handle.mesh.position.y = testHandle2.mesh.position.y + -(normal2X);
 
 
     var t2 = normal1Y * (testHandle2.mesh.position.y - testHandle1.mesh.position.y) - -normal1X * (testHandle2.mesh.position.x - testHandle1.mesh.position.x);
@@ -171,16 +177,16 @@ function onDocumentMouseMove(event) {
     event.preventDefault();
 
     // Getting screen space mouse coordinates in device coordinates.
-    mouse.x = (event.offsetX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.offsetY / window.innerHeight) * 2 + 1;
+    mouse.x = (event.offsetX / 500) * 2 - 1;
+    mouse.y = -(event.offsetY / 400) * 2 + 1;
     
     var vec = new THREE.Vector3(); // create once and reuse
     var pos = new THREE.Vector3(); // create once and reuse
 
     // Getting the mouse location in input device coordinates.
     vec.set(
-    ( event.offsetX / window.innerWidth ) * 2 - 1,
-     -( event.offsetY / window.innerHeight ) * 2 + 1,
+    ( event.offsetX / 500 ) * 2 - 1,
+     -( event.offsetY / 400 ) * 2 + 1,
     0);
 
     // After making them normalised device coordniates, we get them back to world space coordinates on z-level 0.

@@ -64,7 +64,7 @@ export class Handle
             {
 
                 this.mesh.material = this.m_ClickedMaterial;
-                console.log("You are hovering over a handle.");
+                //console.log("You are hovering over a handle.");
 
             }
             else

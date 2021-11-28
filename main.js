@@ -33,7 +33,6 @@ nodeMesh.position.x = 2;
 nodeMesh.position.z = 0;
 nodeMesh.updateMatrix();
 
-//scene.add(nodeMesh);
 
 var heldObj;
 
@@ -127,11 +126,11 @@ function onDocumentMouseMove(event) {
     if(heldObj)
     {
       
-        heldObj.translateX(pos.x - heldObj.getWorldPosition(heldObj.position).x);
-        heldObj.translateY(pos.y - heldObj.getWorldPosition(heldObj.position).y);
+        heldObj.mesh.translateX(pos.x - heldObj.mesh.getWorldPosition(heldObj.mesh.position).x);
+        heldObj.mesh.translateY(pos.y - heldObj.mesh.getWorldPosition(heldObj.mesh.position).y);
         //heldObj.object.position.x = pos.x;
         //heldObj.object.position.y = pos.y;
-        nodeMesh.updateMatrix();
+        //nodeMesh.updateMatrix();
         //testObj.position.z = mouse.z;
         
     }
@@ -168,12 +167,8 @@ function CheckOverlap(hit){
             {
                 return true;
             }
-            
         }
-
         return false;
-            
-        
     }
     else
     {
@@ -183,13 +178,23 @@ function CheckOverlap(hit){
 
 function onMouseDown(event)
 {
-    for(var i = 0; i < handleArray.length; i++)
+
+    if(heldObj) // If we are already holding a handle, drop it if we click again.
     {
-        if(handleArray[i].m_IsHovering)
+        heldObj = null;
+
+    }
+    else
+    {
+        for(var i = 0; i < handleArray.length; i++)
         {
-            console.log("You clicked on a handle!");
-
+            if(handleArray[i].m_IsHovering)
+            {
+                console.log("You clicked on a handle!");
+                heldObj = handleArray[i];
+    
+            }
+    
         }
-
     }
 }

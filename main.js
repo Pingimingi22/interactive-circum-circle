@@ -41,8 +41,9 @@ var circleGeometry = new THREE.CircleGeometry(radius, segments);
 let pts = new THREE.Path().absarc(0, 0, 2, 0, Math.PI * 2).getPoints(64);
 const testGeo = new THREE.BufferGeometry().setFromPoints(pts);
 
+var circleLine = new THREE.Line(testGeo, circleMat)
 
-scene.add(new THREE.Line(testGeo, circleMat));
+scene.add(circleLine);
 
 // ------------------------------------ //
 
@@ -139,7 +140,20 @@ function update(event)
     centreHandle.mesh.position.y = testHandle2.mesh.position.y + (-normal2X * t2);
 
 
-    //console.log(t2);
+    var handle0ToCentreX = centreHandle.mesh.position.x - handleArray[0].mesh.position.x;
+    var handle0ToCentreY = centreHandle.mesh.position.y - handleArray[0].mesh.position.y;
+
+    var handle0ToCentreMag = Math.sqrt(handle0ToCentreX * handle0ToCentreX + handle0ToCentreY * handle0ToCentreY);
+    var radius = handle0ToCentreMag;
+
+
+    // updating circle radius:
+    const newPts = new THREE.Path().absarc(0, 0, radius, 0, Math.PI * 2).getPoints(64);
+    let newTestGeo = new THREE.BufferGeometry().setFromPoints(newPts);
+
+    circleLine.geometry = newTestGeo;
+    circleLine.position.x = centreHandle.mesh.position.x;
+    circleLine.position.y = centreHandle.mesh.position.y;
 
 
 }
